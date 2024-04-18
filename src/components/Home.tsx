@@ -8,7 +8,7 @@ const images = Array.from({ length: 10 }, (_, i) => ({
 
 const Home: React.FC = () => {
   return (
-    <div className="container mx-auto p-4 overflow-hidden">
+    <div className="container mx-auto p-4 overflow-hidden flex justify-center">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {images.map((image, index) => {
           const isFeature = index === 0;
