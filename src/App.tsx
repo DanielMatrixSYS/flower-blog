@@ -8,11 +8,11 @@ import { Suspense, lazy } from "react";
 
 import Loader from "./components/Loader";
 import Navbar from "./components/Navbar";
-import Header from "./components/Header";
-
 import "./index.css";
 
 const Home = lazy(() => import("./components/Home"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
 
 function App() {
   return (
@@ -21,11 +21,12 @@ function App() {
         <Suspense fallback={<Loader />}>
           <div className="flex-grow overflow-auto py-8 mx-auto max-w-screen-lg w-full">
             <Navbar />
-            <Header />
 
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
             </Routes>
           </div>
         </Suspense>
