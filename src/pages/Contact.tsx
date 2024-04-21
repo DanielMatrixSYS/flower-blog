@@ -13,16 +13,17 @@ interface FAQItemProps {
 
 const questions = [
   {
-    question: "Hva slags kamera bruker jeg?",
-    answer: "Jeg bruker et Canon EOS 5D Mark IV-kamera.",
+    question: "Hva slags kamera og linse bruker jeg til makrofotografering?",
+    answer: "Jeg bruker Canon EOS R med Laowa 100mm f/2.8 macro-linse.",
   },
   {
-    question: "Hva slags linse bruker jeg?",
-    answer: "Jeg bruker en Canon EF 100mm f/2.8L Macro IS USM-linse.",
+    question: "Hva slags kamera og linse bruker jeg til fugle- og dyrebildene?",
+    answer: "Canon 70D med Tamron 200-600mm linse.",
   },
   {
     question: "Hvordan redigerer jeg bildene mine?",
-    answer: "Jeg redigerer bildene mine i Adobe Lightroom og Adobe Photoshop.",
+    answer:
+      "Jeg redigerer bildene mine i Adobe Lightroom Classic og Adobe Photoshop.",
   },
   {
     question: "Hvorfor valgte jeg å fokusere på makrofotografi?",
@@ -154,7 +155,7 @@ const Contact = () => (
       <Description text="Fyll ut skjemaet nedenfor. Jeg ser frem til å høre fra deg!" />
       <ContactForm />
 
-      <Description text="Eller så kan du nå meg direkte via diverse sosiale medier:" />
+      <Description text="Eller så kan du nå meg direkte via diverse sosiale medier" />
 
       <div className="flex flex-row space-x-4">
         <button className="bg-blue-700 text-white p-2 rounded-full hover:bg-blue-600">

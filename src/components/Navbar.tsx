@@ -1,5 +1,6 @@
-import { useState } from "react";
-import Modal from "./Modal";
+import React, { useContext } from "react";
+import { AuthContext, AuthContextProps } from "../Auth/AuthContext.tsx";
+import { getAuth, signOut } from "firebase/auth";
 
 const RenderAnchor: React.FC<{
   href: string;
@@ -23,10 +24,38 @@ const RenderAnchor: React.FC<{
 };
 
 const Navbar: React.FC = () => {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+  const { user, loading, userProfile } = useContext(
+    AuthContext,
+  ) as AuthContextProps;
+
+  const RenderAdminButton = () => {
+    if (!user) return <RenderAnchor href={"/login"} value={"Logg inn"} />;
+
+    return (
+      <>
+        {userProfile?.isSiteAdmin && (
+          <RenderAnchor href={"/upload"} value={"Last opp"} />
+        )}
+
+        <RenderAnchor
+          href={"/logout"}
+          value={"Logg ut"}
+          onClick={() => {
+            const auth = getAuth();
+
+            signOut(auth).then(() => {
+              console.log("User signed out!");
+            });
+          }}
+        />
+      </>
+    );
+  };
 
   return (
-    <nav className="flex items-center justify-between p-4">
+    <nav
+      className={`flex items-center justify-between p-4 ${loading ? "opacity-0" : "opacity-100"} transition-all duration-200 transform`}
+    >
       <div className="flex items-center space-x-8">
         <RenderAnchor href="/" value="Hjem" />
         <RenderAnchor href="/about" value="Om oss" />
@@ -34,57 +63,8 @@ const Navbar: React.FC = () => {
       </div>
 
       <div className="flex items-center space-x-4">
-        <RenderAnchor
-          href="/"
-          value="Login"
-          onClick={() => {
-            setIsLoginModalOpen(!isLoginModalOpen);
-          }}
-        />
+        <RenderAdminButton />
       </div>
-
-      <Modal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        title="Login"
-      >
-        <form className="space-y-4">
-          <div className="space-y-2">
-            <label
-              htmlFor="email"
-              className="text-neutral-800 dark:text-neutral-400"
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="w-full p-2 border border-neutral-300 dark:border-neutral-500 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="text-neutral-800 dark:text-neutral-400"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="w-full p-2 border border-neutral-300 dark:border-neutral-500 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-500"
-          >
-            Login
-          </button>
-        </form>
-      </Modal>
     </nav>
   );
 };
