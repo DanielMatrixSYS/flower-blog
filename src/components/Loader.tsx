@@ -1,7 +1,7 @@
+import React from "react";
+
 const Loader: React.FC = () => {
-    return (
-        <></>
-    )
-}
+  return <></>;
+};
 
 export default Loader;

@@ -4,12 +4,13 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useContext } from "react";
 
 import Loader from "./components/Loader";
 import Navbar from "./components/Navbar";
 import AdminRoute from "./routes/Admin.tsx";
 import "./index.css";
+import { AuthContext, AuthContextProps } from "./Auth/AuthContext.tsx";
 
 const Home = lazy(() => import("./components/Home"));
 const About = lazy(() => import("./pages/About"));
@@ -19,11 +20,15 @@ const Upload = lazy(() => import("./pages/Upload"));
 const Register = lazy(() => import("./pages/Register"));
 
 function App() {
+  const { loading } = useContext(AuthContext) as AuthContextProps;
+
   return (
     <Router>
       <div className="flex flex-col min-h-screen bg-[#ebece7]">
         <Suspense fallback={<Loader />}>
-          <div className="flex flex-col flex-grow overflow-auto py-8 mx-auto max-w-screen-lg w-full">
+          <div
+            className={`flex flex-col flex-grow overflow-auto py-8 mx-auto max-w-screen-lg w-full ${loading ? "opacity-0" : "opacity-100"} transition-opacity duration-75`}
+          >
             <Navbar />
 
             <Routes>

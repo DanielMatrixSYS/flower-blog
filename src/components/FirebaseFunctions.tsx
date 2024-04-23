@@ -14,28 +14,42 @@ export interface ImageProps {
   featured?: boolean;
 }
 
-export async function getImages(year: number): Promise<ImageProps[]> {
-  const imageRef = ref(storage, `${year}/`);
+export async function getAllImages(): Promise<ImageProps[]> {
+  const imageRef = ref(storage, `/`);
 
   try {
     const res = await listAll(imageRef);
-    if (res.items.length === 0) return [];
+    let allImages: ImageProps[] = [];
 
-    const urlPromises = res.items.map(async (itemRef: StorageReference) => {
-      const url = await getDownloadURL(itemRef);
+    if (res.prefixes.length > 0) {
+      const allPromises = await Promise.all(
+        res.prefixes.map(async (prefixRef) => {
+          const prefixRes = await listAll(prefixRef);
+          const itemRef = prefixRes.items;
 
-      return {
-        id: itemRef.name,
-        url: url,
-        alt: itemRef.name,
-      };
-    });
+          const urlPromises = itemRef.map(async (image: StorageReference) => {
+            const url = await getDownloadURL(image);
 
-    return await Promise.all(urlPromises);
+            return {
+              id: image.name,
+              url: url,
+              alt: image.name,
+            };
+          });
+
+          return await Promise.all(urlPromises);
+        }),
+      );
+
+      allImages = allPromises.flat();
+    }
+
+    return allImages;
   } catch (error) {
-    console.error("Error fetching images: ", error);
-    return [];
+    console.log(error);
   }
+
+  return [];
 }
 
 export function getNiceErrorMessage(error: FirebaseError): {

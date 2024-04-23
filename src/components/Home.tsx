@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Image from "./Image";
-import { getImages } from "./FirebaseFunctions";
+import { getAllImages } from "./FirebaseFunctions";
 import { ImageProps } from "./FirebaseFunctions";
 import Header from "./Header";
 
@@ -12,9 +12,7 @@ const Home: React.FC = () => {
     const fetchAndProcessImages = async () => {
       setLoading(true);
 
-      const images2023 = await getImages(2023);
-      const images2022 = await getImages(2022);
-      const allImages = [...images2023, ...images2022];
+      const allImages = await getAllImages();
 
       randomizeAndFeatureImages(allImages);
       setLoading(false);
@@ -23,29 +21,43 @@ const Home: React.FC = () => {
     fetchAndProcessImages();
   }, []);
 
-  const randomizeAndFeatureImages = (images: ImageProps[]) => {
+  //Fisher-Yates shuffle
+  //https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+  function shuffleArray<T>(array: T[]): T[] {
+    const shuffled = array.slice();
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled;
+  }
+
+  const randomizeAndFeatureImages = (images: ImageProps[]): void => {
     const innerWidth = window.innerWidth;
     let mod = 4;
 
-    if (innerWidth < 1024) {
+    if (innerWidth < 768) {
+      mod = 3;
+    } else if (innerWidth < 1024) {
       mod = 4;
     }
 
-    if (innerWidth < 768) {
-      mod = 3;
-    }
+    const shuffledImages = shuffleArray(images);
 
-    images.sort(() => 0.5 - Math.random());
-
-    images.forEach((image, index) => {
-      image.featured = (index + 1) % mod === 0;
+    shuffledImages.forEach((image, index) => {
+      image.featured = index % mod === 0;
     });
 
-    setImages(images);
+    setImages(shuffledImages);
   };
 
   return (
-    <div className="flex flex-col">
+    <div
+      className={`flex flex-col ${loading ? "opacity-0" : "opacity-100"} transition-opacity ease-in-out`}
+    >
       <Header />
 
       <div className="container mx-auto p-4 overflow-hidden flex justify-center">
