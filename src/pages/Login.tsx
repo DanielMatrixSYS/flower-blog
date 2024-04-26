@@ -20,10 +20,8 @@ const Login: React.FC = () => {
 
     const auth = getAuth();
     signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(() => {
         nav("/");
-
-        console.log("User signed in: " + userCredential.user.email);
       })
       .catch((error) => {
         console.log(getNiceErrorMessage(error));

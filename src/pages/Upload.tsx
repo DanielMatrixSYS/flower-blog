@@ -157,12 +157,6 @@ const Upload: React.FC = () => {
             onClick={() => {
               if (picture === undefined) return;
 
-              console.log(picture);
-              console.log(pictureName);
-              console.log(pictureDescription);
-              console.log(pictureYear);
-              console.log(pictureFeatured);
-
               const storageRef = ref(storage, `${pictureName}`);
               const uploadTask = uploadBytesResumable(storageRef, picture);
 

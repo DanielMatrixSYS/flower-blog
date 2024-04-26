@@ -28,8 +28,6 @@ const shouldGetFromDatabase = async (): Promise<boolean> => {
   const databaseDate = new Date(data.last_changes_made);
   const cachedDate = new Date(cache);
 
-  console.log(databaseDate, cachedDate);
-
   return databaseDate > cachedDate;
 };
 
@@ -40,10 +38,7 @@ export async function getAllImagesCached(): Promise<ImageProps[]> {
     const imagesJson = localStorage.getItem("images");
 
     if (imagesJson) {
-      const images = JSON.parse(imagesJson);
-
-      console.log("Got images from local cache!", images);
-      return images;
+      return JSON.parse(imagesJson);
     } else {
       console.log("No images in local cache. Going to firestore.");
     }

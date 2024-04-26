@@ -18,7 +18,7 @@ const Home: React.FC = () => {
       setLoading(false);
     };
 
-    fetchCachedImages().then((e) => console.log(e));
+    fetchCachedImages();
   }, []);
 
   //Fisher-Yates shuffle
