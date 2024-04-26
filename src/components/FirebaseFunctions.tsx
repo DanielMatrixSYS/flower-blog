@@ -1,55 +1,91 @@
-import {
-  getDownloadURL,
-  listAll,
-  ref,
-  StorageReference,
-} from "firebase/storage";
-import { storage } from "./Firebase";
+import { doc, getDoc, getDocs, collection } from "firebase/firestore";
+
+import { db } from "./Firebase";
 import { FirebaseError } from "@firebase/util";
 
 export interface ImageProps {
   id: string;
   url: string;
   alt: string;
-  featured?: boolean;
+  year: string;
+  description: string;
+  name: string;
+  featured: boolean;
 }
 
-export async function getAllImages(): Promise<ImageProps[]> {
-  const imageRef = ref(storage, `/`);
+const shouldGetFromDatabase = async (): Promise<boolean> => {
+  const cache = localStorage.getItem("last_changes_made");
+  if (!cache) return true;
 
-  try {
-    const res = await listAll(imageRef);
-    let allImages: ImageProps[] = [];
+  const last_changes_made = doc(db, "global/info");
 
-    if (res.prefixes.length > 0) {
-      const allPromises = await Promise.all(
-        res.prefixes.map(async (prefixRef) => {
-          const prefixRes = await listAll(prefixRef);
-          const itemRef = prefixRes.items;
+  const docSnap = await getDoc(last_changes_made);
+  if (!docSnap.exists()) return true;
 
-          const urlPromises = itemRef.map(async (image: StorageReference) => {
-            const url = await getDownloadURL(image);
+  const data = docSnap.data();
+  if (!data) return true;
 
-            return {
-              id: image.name,
-              url: url,
-              alt: image.name,
-            };
-          });
+  const databaseDate = new Date(data.last_changes_made);
+  const cachedDate = new Date(cache);
 
-          return await Promise.all(urlPromises);
-        }),
-      );
+  console.log(databaseDate, cachedDate);
 
-      allImages = allPromises.flat();
+  return databaseDate > cachedDate;
+};
+
+export async function getAllImagesCached(): Promise<ImageProps[]> {
+  const shouldRetrieveFromDatabase = await shouldGetFromDatabase();
+
+  if (!shouldRetrieveFromDatabase) {
+    const imagesJson = localStorage.getItem("images");
+
+    if (imagesJson) {
+      const images = JSON.parse(imagesJson);
+
+      console.log("Got images from local cache!", images);
+      return images;
+    } else {
+      console.log("No images in local cache. Going to firestore.");
     }
-
-    return allImages;
-  } catch (error) {
-    console.log(error);
+  } else {
+    console.log("Getting images from Firestore.");
   }
 
-  return [];
+  const imageCollection = collection(db, "global/info/images");
+  const docs = await getDocs(imageCollection);
+
+  const images: (ImageProps | null)[] = await Promise.all(
+    docs.docs.map(async (doc) => {
+      const data = doc.data();
+      const id = doc.id;
+
+      if (data) {
+        const { alt, featured, year, description, url, name } = data;
+        const image: ImageProps = {
+          id,
+          url,
+          alt,
+          featured,
+          year,
+          description,
+          name,
+        };
+
+        return image;
+      }
+
+      return null;
+    }),
+  );
+
+  const filteredImages: ImageProps[] = images.filter(
+    (image) => image !== null,
+  ) as ImageProps[];
+
+  localStorage.setItem("images", JSON.stringify(filteredImages));
+  localStorage.setItem("last_changes_made", new Date().toISOString());
+
+  return filteredImages;
 }
 
 export function getNiceErrorMessage(error: FirebaseError): {

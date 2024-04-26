@@ -54,15 +54,15 @@ const Navbar: React.FC = () => {
 
   return (
     <nav
-      className={`flex items-center justify-between p-4 ${loading ? "opacity-0" : "opacity-100"} transition-all duration-200 transform`}
+      className={`flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 justify-between p-4 ${loading ? "opacity-0" : "opacity-100"} transition-all duration-200 transform`}
     >
-      <div className="flex items-center space-x-8">
+      <div className="flex space-x-4 md:space-x-8">
         <RenderAnchor href="/" value="Hjem" />
         <RenderAnchor href="/about" value="Om oss" />
         <RenderAnchor href="/contact" value="Kontakt" />
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex md:space-x-8 space-x-4">
         <RenderAdminButton />
       </div>
     </nav>

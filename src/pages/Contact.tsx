@@ -13,6 +13,11 @@ interface FAQItemProps {
 
 const questions = [
   {
+    question: "Kan jeg bruke, redistribuere eller laste ned bildene dine?",
+    answer:
+      "Du er velkommen til å dele lenke til nettsiden. Ta kontakt om du ønsker å bruke, redistribuere eller laste ned.",
+  },
+  {
     question: "Hva slags kamera og linse bruker jeg til makrofotografering?",
     answer: "Jeg bruker Canon EOS R med Laowa 100mm f/2.8 macro-linse.",
   },
@@ -60,7 +65,7 @@ const ContactForm = () => {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -70,7 +75,7 @@ const ContactForm = () => {
     e.preventDefault();
 
     open(
-      `mailto:${formData.email}?subject=Kontakt via nettside&body=${formData.message}`
+      `mailto:${formData.email}?subject=Kontakt via nettside&body=${formData.message}`,
     );
   };
 

@@ -1,14 +1,88 @@
 import React, { useEffect, useState } from "react";
 import Title from "../components/Typography/Title.tsx";
 import Hint from "../components/Typography/Hint.tsx";
-import { ref, uploadBytesResumable } from "firebase/storage";
-import { storage } from "../components/Firebase.tsx";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../components/Firebase.tsx";
+import Description from "../components/Typography/Description.tsx";
+import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
+
+const Input: React.FC<{
+  title: string;
+  placeholder: string;
+  value: string;
+  setValue: (value: string) => void;
+}> = ({ title, placeholder, value, setValue }) => {
+  return (
+    <div className={"flex flex-col"}>
+      <Hint text={title} />
+
+      <input
+        id={`${title}-input`}
+        className={
+          "p-2 rounded-md border border-neutral-400 focus:outline-none focus:border-blue-700 dark:focus:border-blue-400"
+        }
+        type={"text"}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+    </div>
+  );
+};
+
+const Textarea: React.FC<{
+  title: string;
+  placeholder: string;
+  value: string;
+  setValue: (value: string) => void;
+}> = ({ title, placeholder, value, setValue }) => {
+  return (
+    <div className={"flex flex-col"}>
+      <Hint text={title} />
+
+      <textarea
+        id={`${title}-input`}
+        className={
+          "p-2 rounded-md border border-neutral-400 focus:outline-none focus:border-blue-700 dark:focus:border-blue-400"
+        }
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+    </div>
+  );
+};
+
+const Checkbox: React.FC<{
+  title: string;
+  value: boolean;
+  setValue: (value: boolean) => void;
+}> = ({ title, value, setValue }) => {
+  return (
+    <div className={"flex flex-row space-x-2"}>
+      <Description text={title} />
+
+      <input
+        id={`${title}-checkbox`}
+        className={
+          "p-2 rounded-md border border-neutral-400 focus:outline-none focus:border-blue-700 dark:focus:border-blue-400"
+        }
+        checked={value}
+        onChange={(e) => setValue(e.target.checked)}
+        type={"checkbox"}
+      />
+    </div>
+  );
+};
 
 const Upload: React.FC = () => {
-  const [pictureName, setPictureName] = useState<string>("");
   const [picture, setPicture] = useState<File>();
-  const [result, setResult] = useState<string>("");
+  const [pictureName, setPictureName] = useState<string>("");
+  const [pictureDescription, setPictureDescription] = useState<string>("");
   const [pictureYear, setPictureYear] = useState<string>("");
+  const [pictureFeatured, setPictureFeatured] = useState<boolean>(false);
+
+  const [result, setResult] = useState<string>("");
 
   useEffect(() => {
     const timeoutId = setTimeout(() => setResult(""), 10000);
@@ -16,87 +90,129 @@ const Upload: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [result]);
 
+  const resetStates = () => {
+    setPicture(undefined);
+    setPictureYear("");
+    setPictureName("");
+    setPictureDescription("");
+    setPictureFeatured(false);
+  };
+
   return (
-    <div className="flex flex-col items-start p-4 space-y-4">
+    <div className="flex flex-col items-start p-4">
       <Title text={"Last opp bilder"} />
 
-      <div className={"flex flex-col"}>
-        <Hint text={"Bilde navn"} />
-
-        <input
-          id={"navn-input"}
-          className={
-            "p-2 rounded-md border border-neutral-400 focus:outline-none focus:border-blue-700 dark:focus:border-blue-400"
-          }
-          type={"text"}
-          placeholder={"Mitt bilde"}
-          value={pictureName}
-          onChange={(e) => setPictureName(e.target.value)}
-        />
-      </div>
-
-      <div className={"flex flex-col"}>
-        <Hint text={"Hvilket år ble bildet tatt i?"} />
-
-        <input
-          id={"år-input"}
-          className={
-            "p-2 rounded-md border border-neutral-400 focus:outline-none focus:border-blue-700 dark:focus:border-blue-400"
-          }
-          type={"text"}
-          placeholder={"Bilde år"}
-          value={pictureYear}
-          onChange={(e) => setPictureYear(e.target.value)}
-        />
-      </div>
-
-      <div className={"flex flex-col"}>
+      <div className={"flex flex-col space-y-2"}>
         <Hint text={"Bilde som skal lastes opp"} />
 
-        <div className={"flex flex-col space-y-2"}>
-          <input
-            id={"bilde-input"}
-            className={
-              "border p-2 border-neutral-400 rounded-md file:rounded-md file:px-10 file:mr-5 file:p-2 file:border-none file:text-xs file:bg-blue-700 file:text-neutral-100 hover:file:cursor-pointer hover:file:bg-blue-800"
-            }
-            type={"file"}
-            accept={"image/*"}
-            onChange={(e) => {
-              if (!e.target || !e.target.files || !e.target.files[0]) return;
+        <input
+          id={"bilde-input"}
+          className={
+            "border p-2 border-neutral-400 rounded-md file:rounded-md file:px-10 file:mr-5 file:p-2 file:border-none file:text-xs file:bg-blue-700 file:text-neutral-100 hover:file:cursor-pointer hover:file:bg-blue-800"
+          }
+          type={"file"}
+          accept={"image/*"}
+          onChange={(e) => {
+            if (!e.target || !e.target.files || !e.target.files[0]) return;
 
-              //5mb
-              if (e.target.files[0].size / 1024 > 5000) return;
-              setPicture(e.target.files[0]);
-            }}
-          />
+            //5mb
+            if (e.target.files[0].size / 1024 > 5000) return;
+            setPicture(e.target.files[0]);
+          }}
+        />
 
+        <Input
+          title={"Bilde navn"}
+          placeholder={"Mitt bilde"}
+          value={pictureName}
+          setValue={setPictureName}
+        />
+
+        <Textarea
+          title={"Beskriv bilde"}
+          placeholder={
+            "Bildet er av en fugl, typ grønnfugl, hann, tatt ved høsttider, nær goksjø"
+          }
+          value={pictureDescription}
+          setValue={setPictureDescription}
+        />
+
+        <Input
+          title={"Hvilket år ble bildet tatt i"}
+          placeholder={"Bilde år"}
+          value={pictureYear}
+          setValue={setPictureYear}
+        />
+
+        <Checkbox
+          title={"Skal bilde være fremhevet på nettsiden?"}
+          value={pictureFeatured}
+          setValue={setPictureFeatured}
+        />
+
+        <div className={"flex flex-col"}>
           <button
             className="w-full p-2 bg-blue-700 text-white rounded-md hover:bg-blue-600"
             disabled={picture?.name === ""}
             onClick={() => {
               if (picture === undefined) return;
 
-              const fileRef = ref(storage, `${pictureYear}/${pictureName}`);
-              const uploadTask = uploadBytesResumable(fileRef, picture);
+              console.log(picture);
+              console.log(pictureName);
+              console.log(pictureDescription);
+              console.log(pictureYear);
+              console.log(pictureFeatured);
+
+              const storageRef = ref(storage, `${pictureName}`);
+              const uploadTask = uploadBytesResumable(storageRef, picture);
 
               uploadTask.on(
                 "state_changed",
                 (snapshot) => {
                   const progress =
                     (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
                   setResult(`Upload is ${progress}% done`);
                 },
                 (error) => {
+                  console.error("Error during upload:", error);
                   setResult(`Error uploading file: ${error.message}`);
-                  setPicture(undefined);
-                  setPictureYear("");
-                  setPictureName("");
+
+                  resetStates();
                 },
-                () => {
-                  setResult("File uploaded successfully");
-                  setPicture(undefined);
-                  setPictureYear("");
-                  setPictureName("");
+                async () => {
+                  try {
+                    setResult("Getting url from server...");
+                    const url = await getDownloadURL(storageRef);
+
+                    const pictureData = {
+                      name: pictureName,
+                      alt: pictureName,
+                      description: pictureDescription,
+                      year: pictureYear,
+                      featured: pictureFeatured,
+                      url: url,
+                    };
+
+                    setResult("Inserting picture into the firestore database.");
+                    await addDoc(
+                      collection(db, "global/info/images"),
+                      pictureData,
+                    );
+
+                    setResult("Updating the changes made timestamp");
+                    await updateDoc(doc(db, "global", "info"), {
+                      last_changes_made: new Date().toISOString(),
+                    });
+
+                    setResult("File uploaded & URL retrieved successfully");
+                    resetStates();
+                  } catch (error) {
+                    console.error("Error during Firestore operation:", error);
+
+                    setResult(`Error in Firestore operation: ${error}`);
+                    resetStates();
+                  }
                 },
               );
             }}

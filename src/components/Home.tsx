@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from "react";
 import Image from "./Image";
-import { getAllImages } from "./FirebaseFunctions";
+import { getAllImagesCached } from "./FirebaseFunctions";
 import { ImageProps } from "./FirebaseFunctions";
-import Header from "./Header";
 
 const Home: React.FC = () => {
   const [images, setImages] = useState<ImageProps[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchAndProcessImages = async () => {
+    const fetchCachedImages = async () => {
       setLoading(true);
 
-      const allImages = await getAllImages();
+      await getAllImagesCached().then((images: ImageProps[]) =>
+        randomizeAndFeatureImages(images),
+      );
 
-      randomizeAndFeatureImages(allImages);
       setLoading(false);
     };
 
-    fetchAndProcessImages();
+    fetchCachedImages().then((e) => console.log(e));
   }, []);
 
   //Fisher-Yates shuffle
@@ -36,20 +36,7 @@ const Home: React.FC = () => {
   }
 
   const randomizeAndFeatureImages = (images: ImageProps[]): void => {
-    const innerWidth = window.innerWidth;
-    let mod = 4;
-
-    if (innerWidth < 768) {
-      mod = 3;
-    } else if (innerWidth < 1024) {
-      mod = 4;
-    }
-
     const shuffledImages = shuffleArray(images);
-
-    shuffledImages.forEach((image, index) => {
-      image.featured = index % mod === 0;
-    });
 
     setImages(shuffledImages);
   };
@@ -58,21 +45,14 @@ const Home: React.FC = () => {
     <div
       className={`flex flex-col ${loading ? "opacity-0" : "opacity-100"} transition-opacity ease-in-out`}
     >
-      <Header />
-
-      <div className="container mx-auto p-4 overflow-hidden flex justify-center">
+      <div className="flex-col space-y-2 container mx-auto p-4 overflow-hidden flex justify-center">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-x-16 xl:gap-x-7 gap-y-2">
           {loading ? (
-            <p className="col-span-full text-center">Loading images...</p>
+            <p className="text-2xl col-span-full text-center">
+              Venter på bildene fra server...
+            </p>
           ) : (
-            images.map((image) => (
-              <Image
-                key={image.id}
-                src={image.url}
-                alt={image.alt}
-                featured={image.featured || false}
-              />
-            ))
+            images.map((image) => <Image image={image} key={image.id} />)
           )}
         </div>
       </div>
