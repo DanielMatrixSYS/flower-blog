@@ -29,22 +29,22 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className={"flex flex-col p-4 flex-grow max-h-[37rem]"}>
-      <div className={"flex flex-col flex-grow items-center justify-center"}>
+    <div className="flex flex-col p-4 flex-grow max-h-[37rem]">
+      <div className="flex flex-col flex-grow items-center justify-center">
         <div
           className={
             "flex flex-col w-full sm:w-1/2 border border-neutral-400 dark:border-neutral-500 rounded-lg p-4 shadow-sm"
           }
         >
-          <div className={"flex flex-col items-center justify-center"}>
+          <div className="flex flex-col items-center justify-center">
             <Title text={"Logg inn"} />
           </div>
 
           <form
-            className={"flex flex-col space-y-4 mt-6"}
+            className="flex flex-col space-y-4 mt-6"
             onSubmit={handleSubmit}
           >
-            <div className={"flex flex-col"}>
+            <div className="flex flex-col">
               <label htmlFor={"email-input"}>
                 <Hint text={"E-post"} />
               </label>
@@ -61,7 +61,7 @@ const Login: React.FC = () => {
               />
             </div>
 
-            <div className={"flex flex-col"}>
+            <div className="flex flex-col">
               <label htmlFor="password-input">
                 <Hint text={"Passord"} />
               </label>

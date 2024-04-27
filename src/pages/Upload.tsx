@@ -18,7 +18,7 @@ const Input: React.FC<{
   setValue: (value: string) => void;
 }> = ({ title, placeholder, value, setValue }) => {
   return (
-    <div className={"flex flex-col"}>
+    <div className="flex flex-col">
       <Hint text={title} />
 
       <input
@@ -42,7 +42,7 @@ const Textarea: React.FC<{
   setValue: (value: string) => void;
 }> = ({ title, placeholder, value, setValue }) => {
   return (
-    <div className={"flex flex-col"}>
+    <div className="flex flex-col">
       <Hint text={title} />
 
       <textarea
@@ -64,7 +64,7 @@ const Checkbox: React.FC<{
   setValue: (value: boolean) => void;
 }> = ({ title, value, setValue }) => {
   return (
-    <div className={"flex flex-row space-x-2"}>
+    <div className="flex flex-row space-x-2">
       <Description text={title} />
 
       <input
@@ -109,7 +109,7 @@ const Upload: React.FC = () => {
     <div className="flex flex-col items-start p-4">
       <Title text={"Last opp bilder"} />
 
-      <div className={"flex flex-col space-y-2"}>
+      <div className="flex flex-col space-y-2">
         <Hint text={"Bilde som skal lastes opp"} />
 
         <input
@@ -157,7 +157,7 @@ const Upload: React.FC = () => {
           setValue={setPictureFeatured}
         />
 
-        <div className={"flex flex-col"}>
+        <div className="flex flex-col">
           <button
             className="w-full p-2 bg-blue-700 text-white rounded-md hover:bg-blue-600"
             disabled={picture?.name === ""}

@@ -58,7 +58,7 @@ const Image: React.FC<{ image: ImageProps }> = ({ image }) => {
 
           {isLoaded && (
             <div className="absolute inset-0 flex justify-center items-center px-2 opacity-0 bg-transparent md:hover:bg-black/40 md:hover:opacity-100 md:transition-all md:duration-300 md:hover:cursor-default md:ease-in-out">
-              <p className={"text-2xl inline-block text-blue-700"}>
+              <p className="text-2xl inline-block text-blue-700">
                 Bilde ble tatt i {image.year}
               </p>
             </div>
