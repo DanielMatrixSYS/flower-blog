@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Title from "../components/Typography/Title.tsx";
 import Hint from "../components/Typography/Hint.tsx";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  getMetadata,
+} from "firebase/storage";
 import { db, storage } from "../components/Firebase.tsx";
 import Description from "../components/Typography/Description.tsx";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
@@ -83,9 +88,11 @@ const Upload: React.FC = () => {
   const [pictureFeatured, setPictureFeatured] = useState<boolean>(false);
 
   const [result, setResult] = useState<string>("");
+  const [resultColor, setResultColor] = useState<string>("text-green-700");
+  const [resultTime, setResultTime] = useState<number>(10000);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => setResult(""), 10000);
+    const timeoutId = setTimeout(() => setResult(""), resultTime);
 
     return () => clearTimeout(timeoutId);
   }, [result]);
@@ -154,10 +161,32 @@ const Upload: React.FC = () => {
           <button
             className="w-full p-2 bg-blue-700 text-white rounded-md hover:bg-blue-600"
             disabled={picture?.name === ""}
-            onClick={() => {
+            onClick={async () => {
               if (picture === undefined) return;
+              let shouldContinue = true;
+
+              setResultTime(10000);
+              setResultColor("text-green-700");
+              setResult("Starting upload process...");
 
               const storageRef = ref(storage, `${pictureName}`);
+
+              //Filename already exists?
+              try {
+                await getMetadata(storageRef);
+                shouldContinue = false;
+              } catch (error) {
+                shouldContinue = true;
+              }
+
+              if (!shouldContinue) {
+                setResultTime(2000);
+                setResultColor("text-red-700");
+                setResult("Bilde med samme navn eksisterer allerede");
+
+                return;
+              }
+
               const uploadTask = uploadBytesResumable(storageRef, picture);
 
               uploadTask.on(
@@ -199,11 +228,15 @@ const Upload: React.FC = () => {
                       last_changes_made: new Date().toISOString(),
                     });
 
+                    setResultTime(3500);
+                    setResultColor("text-green-700");
                     setResult("File uploaded & URL retrieved successfully");
                     resetStates();
                   } catch (error) {
                     console.error("Error during Firestore operation:", error);
 
+                    setResultTime(3500);
+                    setResultColor("text-red-700");
                     setResult(`Error in Firestore operation: ${error}`);
                     resetStates();
                   }
@@ -214,7 +247,7 @@ const Upload: React.FC = () => {
             Last opp
           </button>
 
-          <Hint text={result} customStyle={"text-green-700"} />
+          <Hint text={result} customStyle={resultColor} />
         </div>
       </div>
     </div>

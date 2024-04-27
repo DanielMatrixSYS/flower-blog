@@ -37,6 +37,8 @@ export async function getAllImagesCached(): Promise<ImageProps[]> {
   if (!shouldRetrieveFromDatabase) {
     const imagesJson = localStorage.getItem("images");
 
+    console.log("Getting images from local cache.");
+
     if (imagesJson) {
       return JSON.parse(imagesJson);
     } else {

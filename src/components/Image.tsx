@@ -19,6 +19,9 @@ const Image: React.FC<{ image: ImageProps }> = ({ image }) => {
     ? "sm:col-span-2 md:col-span-3 lg:col-span-3"
     : "sm:col-span-1 md:col-span-1 lg:col-span-1";
 
+  const imageHeight = image.featured ? "h-screen" : "h-full";
+  const imageWidth = image.featured ? "w-full" : "w-full";
+
   return (
     <div
       className={`overflow-hidden ${columnSpan} ${rowSpan} shadow-sm transition duration-300 ease-in-out transform`}
@@ -47,14 +50,14 @@ const Image: React.FC<{ image: ImageProps }> = ({ image }) => {
             loading="lazy"
             width="100%"
             height="100%"
-            className={`w-fit h-full object-cover transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+            className={`${imageWidth} ${imageHeight} object-cover transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}
             onLoad={() => setIsLoaded(true)}
             onError={errorHandler}
             onContextMenuCapture={(e) => e.preventDefault()}
           />
 
           {isLoaded && (
-            <div className="absolute inset-0 flex justify-center items-center px-2 opacity-0 bg-transparent md:hover:bg-black/80 md:hover:opacity-100 md:transition-all md:duration-300 md:hover:cursor-default md:ease-in-out">
+            <div className="absolute inset-0 flex justify-center items-center px-2 opacity-0 bg-transparent md:hover:bg-black/40 md:hover:opacity-100 md:transition-all md:duration-300 md:hover:cursor-default md:ease-in-out">
               <p className={"text-2xl inline-block text-blue-700"}>
                 Bilde ble tatt i {image.year}
               </p>
