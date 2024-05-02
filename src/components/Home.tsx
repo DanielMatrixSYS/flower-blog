@@ -7,52 +7,63 @@ const Home: React.FC = () => {
   const [images, setImages] = useState<ImageProps[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Fisher-Yates shuffle algorithm
+  // Fisher-Yates shuffle algorithm with TypeScript annotation
+  function shuffleArray(array: ImageProps[]): void {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+  }
+
   useEffect(() => {
     const fetchCachedImages = async () => {
       setLoading(true);
 
-      await getAllImagesCached().then((images: ImageProps[]) =>
-        randomizeAndFeatureImages(images),
-      );
+      const allImages = await getAllImagesCached();
 
+      const newFeatured: ImageProps[] = [];
+      const newNonFeatured: ImageProps[] = [];
+
+      allImages.forEach((image) => {
+        if (image.featured) {
+          newFeatured.push(image);
+        } else {
+          newNonFeatured.push(image);
+        }
+      });
+
+      shuffleArray(newFeatured);
+      shuffleArray(newNonFeatured);
+
+      setImages([...newFeatured, ...newNonFeatured]);
       setLoading(false);
     };
 
-    fetchCachedImages();
+    fetchCachedImages().then(() => console.log("Images fetched"));
   }, []);
-
-  //Fisher-Yates shuffle
-  //https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-  function shuffleArray<T>(array: T[]): T[] {
-    const shuffled = array.slice();
-
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    return shuffled;
-  }
-
-  const randomizeAndFeatureImages = (images: ImageProps[]): void => {
-    const shuffledImages = shuffleArray(images);
-
-    setImages(shuffledImages);
-  };
 
   return (
     <div
       className={`flex flex-col ${loading ? "opacity-0" : "opacity-100"} transition-opacity ease-in-out`}
     >
       <div className="flex-col space-y-2 container mx-auto p-4 overflow-hidden flex justify-center">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-x-16 xl:gap-x-7 gap-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-2">
           {loading ? (
             <p className="text-2xl col-span-full text-center">
               Venter på bildene fra server...
             </p>
           ) : (
-            images.map((image) => <Image image={image} key={image.id} />)
+            images.map((image) => (
+              <Image
+                image={image}
+                key={image.id}
+                // This function is called when an image is deleted. Document ID (string) provided as argument.
+                onImageDeleted={(id) => {
+                  images.filter((image) => image.id !== id);
+                }}
+              />
+            ))
           )}
         </div>
       </div>

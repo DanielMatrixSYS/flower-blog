@@ -1,26 +1,40 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 import Hint from "./Typography/Hint.tsx";
 import { ImageProps } from "./FirebaseFunctions.tsx";
+import { AuthContext, AuthContextProps } from "../Auth/AuthContext.tsx";
+import { MdClose } from "react-icons/md";
+import { deleteImage } from "./FirebaseFunctions.tsx";
 
-const Image: React.FC<{ image: ImageProps }> = ({ image }) => {
+const Image: React.FC<{
+  image: ImageProps;
+  onImageDeleted: (id: string) => void;
+}> = ({ image, onImageDeleted }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const { userProfile } = useContext(AuthContext) as AuthContextProps;
 
   const errorHandler = () => {
     setHasError(true);
   };
 
+  const handleDelete = async () => {
+    if (!userProfile?.isSiteAdmin) return;
+
+    await deleteImage(image.id);
+    onImageDeleted(image.id);
+  };
+
   const rowSpan = image.featured
-    ? "lg:row-span-2 md:row-span-2 sm:row-span-2 z-40"
+    ? "lg:row-span-2 md:row-span-2 sm:row-span-2"
     : "";
 
   const columnSpan = image.featured
-    ? "sm:col-span-2 md:col-span-3 lg:col-span-3"
-    : "sm:col-span-1 md:col-span-1 lg:col-span-1";
+    ? "sm:col-span-2 md:col-span-2 lg:col-span-3"
+    : "col-span-1";
 
-  const imageHeight = image.featured ? "h-screen" : "h-full";
-  const imageWidth = image.featured ? "w-full" : "w-full";
+  const imageHeight = image.featured ? "h-auto md:h-3/4-screen" : "h-auto md:h-72";
+  const imageWidth = "w-full";
 
   return (
     <div
@@ -57,10 +71,32 @@ const Image: React.FC<{ image: ImageProps }> = ({ image }) => {
           />
 
           {isLoaded && (
-            <div className="absolute inset-0 flex justify-center items-center px-2 opacity-0 bg-transparent md:hover:bg-black/40 md:hover:opacity-100 md:transition-all md:duration-300 md:hover:cursor-default md:ease-in-out">
-              <p className="text-2xl inline-block text-blue-700">
-                Bilde ble tatt i {image.year}
-              </p>
+            <div className="absolute inset-0 flex opacity-0 hover:opacity-100 md:transition-all md:duration-300 md:ease-in-out md:hover:cursor-default">
+              <div className="flex w-full p-2 justify-between">
+                <div className="flex flex-col">
+                  <p className="text-2xl inline-block text-blue-700">
+                    {image.year}
+                  </p>
+
+                  {userProfile?.isSiteAdmin && (
+                    <p className="text-xl inline-block text-blue-700">
+                      {image.featured ? "Dette bildet er fremhevet" : ""}
+                    </p>
+                  )}
+                </div>
+
+                {userProfile?.isSiteAdmin && (
+                  <div
+                    className={`border border-neutral-400/50 rounded-full text-red-500 hover:text-red-900 ${image.featured ? "h-16" : "h-8"} hover:cursor-pointer`}
+                    onClick={handleDelete}
+                  >
+                    <MdClose
+                      aria-label="Delete image"
+                      className="w-full h-full"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </>

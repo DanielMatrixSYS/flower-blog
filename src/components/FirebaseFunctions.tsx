@@ -1,4 +1,13 @@
-import { doc, getDoc, getDocs, collection } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  getDocs,
+  collection,
+  deleteDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { ref, deleteObject } from "firebase/storage";
+import { storage } from "./Firebase";
 
 import { db } from "./Firebase";
 import { FirebaseError } from "@firebase/util";
@@ -83,6 +92,37 @@ export async function getAllImagesCached(): Promise<ImageProps[]> {
   localStorage.setItem("last_changes_made", new Date().toISOString());
 
   return filteredImages;
+}
+
+export async function deleteImage(id: string): Promise<boolean> {
+  try {
+    const imageRef = doc(db, "global/info/images", id);
+    const name = (await getDoc(imageRef)).data()?.name;
+
+    if (!name || name === "") {
+      console.error("Image not found in database.");
+
+      return false;
+    }
+
+    await deleteDoc(imageRef).then(() => {
+      const storageRef = ref(storage, `${name}`);
+
+      deleteObject(storageRef).then(() => {
+        console.log("Image deleted successfully.");
+      });
+    });
+
+    await updateDoc(doc(db, "global", "info"), {
+      last_changes_made: new Date().toISOString(),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting image:", error);
+
+    return false;
+  }
 }
 
 export function getNiceErrorMessage(error: FirebaseError): {
