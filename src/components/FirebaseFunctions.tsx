@@ -125,6 +125,58 @@ export async function deleteImage(id: string): Promise<boolean> {
   }
 }
 
+export async function getImage(id: string): Promise<ImageProps> {
+  const imageRef = doc(db, "global/info/images", id);
+  const docSnap = await getDoc(imageRef);
+
+  if (!docSnap.exists()) {
+    throw new Error("Image not found.");
+  }
+
+  const data = docSnap.data();
+
+  if (!data) {
+    throw new Error("Image not found.");
+  }
+
+  const { alt, featured, year, description, url, name } = data;
+
+  return {
+    id,
+    url,
+    alt,
+    featured,
+    year,
+    description,
+    name,
+  };
+}
+
+export async function updateImage(
+  id: string,
+  imageData: ImageProps,
+): Promise<boolean> {
+  try {
+    const imageRef = doc(db, "global/info/images", id);
+    await updateDoc(imageRef, {
+      description: imageData.description,
+      featured: imageData.featured,
+      name: imageData.name,
+      year: imageData.year,
+    });
+
+    await updateDoc(doc(db, "global", "info"), {
+      last_changes_made: new Date().toISOString(),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error updating image:", error);
+
+    return false;
+  }
+}
+
 export function getNiceErrorMessage(error: FirebaseError): {
   code: string;
   message: string;

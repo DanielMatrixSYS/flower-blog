@@ -18,6 +18,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Login = lazy(() => import("./pages/Login"));
 const Upload = lazy(() => import("./pages/Upload"));
 const Register = lazy(() => import("./pages/Register"));
+const Edit = lazy(() => import("./pages/Edit"));
 
 function App() {
   const { loading } = useContext(AuthContext) as AuthContextProps;
@@ -38,10 +39,11 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
-              <Route path={"Register"} element={<Register />} />
+              <Route path="Register" element={<Register />} />
 
               <Route element={<AdminRoute />}>
                 <Route path="/upload" element={<Upload />} />
+                <Route path="/edit/:id" element={<Edit />} />
               </Route>
             </Routes>
           </div>
