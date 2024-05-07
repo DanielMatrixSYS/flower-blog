@@ -1,16 +1,7 @@
-import {
-  doc,
-  getDoc,
-  getDocs,
-  collection,
-  deleteDoc,
-  updateDoc,
-} from "firebase/firestore";
-import { ref, deleteObject } from "firebase/storage";
-import { storage } from "./Firebase";
-
-import { db } from "./Firebase";
-import { FirebaseError } from "@firebase/util";
+import {collection, deleteDoc, doc, getDoc, getDocs, updateDoc,} from "firebase/firestore";
+import {deleteObject, ref} from "firebase/storage";
+import {db, storage} from "./Firebase";
+import {FirebaseError} from "@firebase/util";
 
 export interface ImageProps {
   id: string;
@@ -20,6 +11,7 @@ export interface ImageProps {
   description: string;
   name: string;
   featured: boolean;
+  likes: number;
 }
 
 const shouldGetFromDatabase = async (): Promise<boolean> => {
@@ -66,7 +58,7 @@ export async function getAllImagesCached(): Promise<ImageProps[]> {
       const id = doc.id;
 
       if (data) {
-        const { alt, featured, year, description, url, name } = data;
+        const {alt, featured, year, description, url, name, likes} = data;
         const image: ImageProps = {
           id,
           url,
@@ -75,6 +67,7 @@ export async function getAllImagesCached(): Promise<ImageProps[]> {
           year,
           description,
           name,
+          likes,
         };
 
         return image;
@@ -139,7 +132,7 @@ export async function getImage(id: string): Promise<ImageProps> {
     throw new Error("Image not found.");
   }
 
-  const { alt, featured, year, description, url, name } = data;
+  const {alt, featured, year, description, url, name, likes} = data;
 
   return {
     id,
@@ -149,7 +142,88 @@ export async function getImage(id: string): Promise<ImageProps> {
     year,
     description,
     name,
+    likes,
   };
+}
+
+export async function likeImage(imageId: string): Promise<boolean> {
+  const imageRef = doc(db, "global/info/images", imageId);
+  const docSnap = await getDoc(imageRef);
+
+  if (!docSnap.exists()) {
+    throw new Error("Image not found.");
+  }
+
+  const data = docSnap.data();
+  if (!data) {
+    throw new Error("Image not found.");
+  }
+
+  const likes = data.likes > 0 ? data.likes : 0;
+  await updateDoc(imageRef, {
+    likes: likes + 1,
+  });
+
+  const likedCache = localStorage.getItem("images_liked");
+  const likedImages = likedCache ? JSON.parse(likedCache) : [];
+
+  if (likedImages.includes(imageId)) {
+    return false;
+  }
+
+  likedImages.push(imageId);
+  localStorage.setItem("images_liked", JSON.stringify(likedImages));
+
+  await updateDoc(doc(db, "global", "info"), {
+    last_changes_made: new Date().toISOString(),
+  });
+
+  return true;
+}
+
+export async function unlikeImage(imageId: string): Promise<boolean> {
+  const imageRef = doc(db, "global/info/images", imageId);
+  const docSnap = await getDoc(imageRef);
+
+  if (!docSnap.exists()) {
+    throw new Error("Image not found.");
+  }
+
+  const data = docSnap.data();
+  if (!data) {
+    throw new Error("Image not found.");
+  }
+
+  const likes = data.likes > 0 ? data.likes : 0;
+  await updateDoc(imageRef, {
+    likes: likes - 1,
+  });
+
+  const likedCache = localStorage.getItem("images_liked");
+  const likedImages = likedCache ? JSON.parse(likedCache) : [];
+
+  if (!likedImages.includes(imageId)) {
+    return false;
+  }
+
+  localStorage.setItem(
+      "images_liked",
+      JSON.stringify(likedImages.filter((id: string) => id !== imageId)),
+  );
+
+  await updateDoc(doc(db, "global", "info"), {
+    last_changes_made: new Date().toISOString(),
+  });
+
+  return true;
+}
+
+export async function hasUserLikedImage(imageId: string): Promise<boolean> {
+  const likedCache = localStorage.getItem("images_liked");
+  if (!likedCache) return false;
+
+  const likedImages = JSON.parse(likedCache);
+  return likedImages.includes(imageId);
 }
 
 export async function updateImage(

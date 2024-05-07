@@ -1,11 +1,11 @@
-import React, { useContext, useState } from "react";
-import { FaSpinner } from "react-icons/fa";
+import React, {useContext, useEffect, useState} from "react";
+import {FaSpinner} from "react-icons/fa";
 import Hint from "./Typography/Hint.tsx";
-import { ImageProps } from "./FirebaseFunctions.tsx";
-import { AuthContext, AuthContextProps } from "../Auth/AuthContext.tsx";
-import { MdClose, MdEdit } from "react-icons/md";
-import { deleteImage } from "./FirebaseFunctions.tsx";
-import { useNavigate } from "react-router-dom";
+import {deleteImage, hasUserLikedImage, ImageProps, likeImage, unlikeImage} from "./FirebaseFunctions.tsx";
+import {AuthContext, AuthContextProps} from "../Auth/AuthContext.tsx";
+import {MdClose, MdEdit} from "react-icons/md";
+import {useNavigate} from "react-router-dom";
+import {FaHeart, FaRegHeart} from "react-icons/fa6";
 
 const Image: React.FC<{
   image: ImageProps;
@@ -13,6 +13,8 @@ const Image: React.FC<{
 }> = ({ image, onImageDeleted }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+    const [imageLiked, setImageLiked] = useState(false);
+    const [likes, setLikes] = useState(image.likes || 0);
   const { userProfile } = useContext(AuthContext) as AuthContextProps;
   const navigate = useNavigate();
 
@@ -32,6 +34,12 @@ const Image: React.FC<{
 
     navigate(`/edit/${image.id}`);
   };
+
+    useEffect(() => {
+        hasUserLikedImage(image.id).then((liked) => {
+            setImageLiked(liked);
+        });
+    }, []);
 
   const rowSpan = image.featured
     ? "lg:row-span-2 md:row-span-2 sm:row-span-2"
@@ -65,6 +73,39 @@ const Image: React.FC<{
       </div>
     );
   };
+
+    const DrawLikes = () => {
+        let disabled = false;
+
+        return (
+            <div className="flex flex-row space-x-2 scale-125 px-4 items-center">
+                <button
+                    className="text-white"
+                    disabled={disabled}
+                    onClick={async () => {
+                        if (imageLiked) {
+                            disabled = true;
+
+                            setLikes((prev) => prev - 1);
+                            setImageLiked(false);
+                            await unlikeImage(image.id).then(() => disabled = false);
+                        } else {
+                            disabled = true;
+
+                            setLikes((prev) => prev + 1);
+                            setImageLiked(true);
+                            await likeImage(image.id).then(() => disabled = false);
+                        }
+                    }}>
+                    {imageLiked ? <FaHeart/> : <FaRegHeart/>}
+                </button>
+
+                <p className="text-xl inline-block text-white">
+                    {likes}
+                </p>
+            </div>
+        )
+    };
 
   return (
     <div
@@ -101,23 +142,28 @@ const Image: React.FC<{
           />
 
           {isLoaded && (
-            <div className="absolute inset-0 flex opacity-0 hover:opacity-100 md:transition-all md:duration-300 md:ease-in-out md:hover:cursor-default">
-              <div className="flex w-full p-2 justify-between">
-                <div className="flex flex-col">
-                  <p className="text-2xl inline-block text-blue-700">
-                    {image.year}
-                  </p>
+              <div
+                  className="absolute inset-0 flex opacity-0 hover:opacity-100 bg-black/60 md:transition-all md:duration-300 md:ease-in-out md:hover:cursor-default">
+                  <div className="flex w-full p-2 justify-between">
+                      <div className="flex flex-col">
+                          <p className="text-2xl inline-block text-blue-700">
+                              {image.year}
+                          </p>
 
-                  {userProfile?.isSiteAdmin && (
-                    <p className="text-xl inline-block text-blue-700">
-                      {image.featured ? "Dette bildet er fremhevet" : ""}
-                    </p>
-                  )}
-                </div>
+                          {userProfile?.isSiteAdmin && (
+                              <p className="text-xl inline-block text-blue-700">
+                                  {image.featured ? "Dette bildet er fremhevet" : ""}
+                              </p>
+                          )}
+                      </div>
 
-                {userProfile?.isSiteAdmin && <AdministratorOptions />}
+                      <div className="flex flex-col items-end justify-between">
+                          {userProfile?.isSiteAdmin && <AdministratorOptions/>}
+
+                          <div><DrawLikes/></div>
+                      </div>
+                  </div>
               </div>
-            </div>
           )}
         </>
       )}

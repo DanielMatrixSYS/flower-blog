@@ -1,14 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import Title from "../components/Typography/Title.tsx";
 import Hint from "../components/Typography/Hint.tsx";
-import {
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-  getMetadata,
-} from "firebase/storage";
-import { db, storage } from "../components/Firebase.tsx";
-import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
+import {getDownloadURL, getMetadata, ref, uploadBytesResumable,} from "firebase/storage";
+import {db, storage} from "../components/Firebase.tsx";
+import {addDoc, collection, doc, updateDoc} from "firebase/firestore";
 
 import Input from "../components/Input.tsx";
 import Textarea from "../components/Textarea.tsx";
@@ -149,6 +144,7 @@ const Upload: React.FC = () => {
                       year: pictureYear,
                       featured: pictureFeatured,
                       url: url,
+                        likes: 0,
                     };
 
                     setResult("Inserting picture into the firestore database.");
